@@ -29,6 +29,7 @@ from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
 from homeassistant.components.device_automation.trigger import (
     async_validate_trigger_config,
 )
+from homeassistant.components.fan import DOMAIN as FAN_DOMAIN
 from homeassistant.components.http import KEY_HASS, HomeAssistantView
 from homeassistant.components.humidifier import DOMAIN as HUMIDIFIER_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN, SensorDeviceClass
@@ -79,6 +80,7 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import IntegrationNotFound, async_get_integration
 
 from . import (  # noqa: F401
+    type_air_purifiers,
     type_cameras,
     type_covers,
     type_fans,
@@ -109,6 +111,9 @@ from .const import (
     CONF_LINKED_DOORBELL_SENSOR,
     CONF_LINKED_HUMIDITY_SENSOR,
     CONF_LINKED_MOTION_SENSOR,
+    CONF_LINKED_PM10_SENSOR,
+    CONF_LINKED_PM25_SENSOR,
+    CONF_LINKED_TEMPERATURE_SENSOR,
     CONFIG_OPTIONS,
     DEFAULT_EXCLUDE_ACCESSORY_MODE,
     DEFAULT_HOMEKIT_MODE,
@@ -1127,6 +1132,32 @@ class HomeKit:
             self._config.setdefault(state.entity_id, {}).setdefault(
                 CONF_LINKED_HUMIDITY_SENSOR, current_humidity_sensor_entity_id
             )
+
+        if domain == FAN_DOMAIN:
+            if current_humidity_sensor_entity_id := device_lookup.get(
+                (SENSOR_DOMAIN, SensorDeviceClass.HUMIDITY)
+            ):
+                self._config.setdefault(state.entity_id, {}).setdefault(
+                    CONF_LINKED_HUMIDITY_SENSOR, current_humidity_sensor_entity_id
+                )
+            if current_temperature_sensor_entity_id := device_lookup.get(
+                (SENSOR_DOMAIN, SensorDeviceClass.TEMPERATURE)
+            ):
+                self._config.setdefault(state.entity_id, {}).setdefault(
+                    CONF_LINKED_TEMPERATURE_SENSOR, current_temperature_sensor_entity_id
+                )
+            if current_pm25_entity_id := device_lookup.get(
+                (SENSOR_DOMAIN, SensorDeviceClass.PM25)
+            ):
+                self._config.setdefault(state.entity_id, {}).setdefault(
+                    CONF_LINKED_PM25_SENSOR, current_pm25_entity_id
+                )
+            if current_pm10_entity_id := device_lookup.get(
+                (SENSOR_DOMAIN, SensorDeviceClass.PM10)
+            ):
+                self._config.setdefault(state.entity_id, {}).setdefault(
+                    CONF_LINKED_PM10_SENSOR, current_pm10_entity_id
+                )
 
     async def _async_set_device_info_attributes(
         self,

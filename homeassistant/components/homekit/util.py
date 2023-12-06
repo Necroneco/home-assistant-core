@@ -20,6 +20,7 @@ from homeassistant.components import (
     media_player,
     persistent_notification,
     sensor,
+    switch,
 )
 from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
 from homeassistant.components.lock import DOMAIN as LOCK_DOMAIN
@@ -62,8 +63,12 @@ from .const import (
     CONF_LINKED_BATTERY_SENSOR,
     CONF_LINKED_DOORBELL_SENSOR,
     CONF_LINKED_HUMIDITY_SENSOR,
+    CONF_LINKED_LOCK_PHYSICAL_CONTROLS_SWITCH,
     CONF_LINKED_MOTION_SENSOR,
     CONF_LINKED_OBSTRUCTION_SENSOR,
+    CONF_LINKED_PM10_SENSOR,
+    CONF_LINKED_PM25_SENSOR,
+    CONF_LINKED_TEMPERATURE_SENSOR,
     CONF_LOW_BATTERY_THRESHOLD,
     CONF_MAX_FPS,
     CONF_MAX_HEIGHT,
@@ -93,6 +98,8 @@ from .const import (
     FEATURE_PLAY_STOP,
     FEATURE_TOGGLE_MUTE,
     MAX_NAME_LENGTH,
+    TYPE_AIR_PURIFIER,
+    TYPE_FAN,
     TYPE_FAUCET,
     TYPE_OUTLET,
     TYPE_SHOWER,
@@ -174,6 +181,22 @@ CAMERA_SCHEMA = BASIC_INFO_SCHEMA.extend(
 
 HUMIDIFIER_SCHEMA = BASIC_INFO_SCHEMA.extend(
     {vol.Optional(CONF_LINKED_HUMIDITY_SENSOR): cv.entity_domain(sensor.DOMAIN)}
+)
+
+FAN_SCHEMA = BASIC_INFO_SCHEMA.extend(
+    {
+        vol.Optional(CONF_TYPE, default=TYPE_FAN): vol.All(
+            cv.string,
+            vol.In((TYPE_FAN, TYPE_AIR_PURIFIER)),
+        ),
+        vol.Optional(CONF_LINKED_TEMPERATURE_SENSOR): cv.entity_domain(sensor.DOMAIN),
+        vol.Optional(CONF_LINKED_HUMIDITY_SENSOR): cv.entity_domain(sensor.DOMAIN),
+        vol.Optional(CONF_LINKED_PM25_SENSOR): cv.entity_domain(sensor.DOMAIN),
+        vol.Optional(CONF_LINKED_PM10_SENSOR): cv.entity_domain(sensor.DOMAIN),
+        vol.Optional(CONF_LINKED_LOCK_PHYSICAL_CONTROLS_SWITCH): cv.entity_domain(
+            switch.DOMAIN
+        ),
+    }
 )
 
 
@@ -296,6 +319,9 @@ def validate_entity_config(values: dict) -> dict[str, dict]:
 
         elif domain == "cover":
             config = COVER_SCHEMA(config)
+
+        elif domain == "fan":
+            config = FAN_SCHEMA(config)
 
         else:
             config = BASIC_INFO_SCHEMA(config)
